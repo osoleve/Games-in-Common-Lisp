@@ -1,3 +1,4 @@
+
 ;;;; tictactoe.lisp
 ;;;; 
 ;;;; Andrew Levenson
@@ -13,7 +14,24 @@
 		  :initial-contents
 		  '(1 2 3 4 5 6 7 8 9))))
 
-;;; Greet the player and display the board.
+;;; Mask the implementation of the board
+;;; in terms of referencing a cell.
+(defun cell-ref (cell)
+  ;; (cell-ref cell) now calls an array reference
+  ;; to the cell number minus one, to compensate
+  ;; for the fact that the array index starts at 0.
+  (aref *board* (1- cell)))
+
+;;; Mask the implementation of the board
+;;; in terms of setting a cell value.
+(defun set-cell (cell)
+  ;; (set-cell cell) now calls an array reference
+  ;; to the cell number minus one, to compensate 
+  ;; for the fact that the array index starts at 0,
+  ;; and sets that reference to the marker.
+  (setf (aref *board* (1- cell)) *marker*))
+
+;;; Welcome the player
 (defun welcome-player ()
   (format t "Welcome to TicTacToe!~%~%")
   (create-board)
@@ -177,23 +195,6 @@
   ;; (i.e. all spaces contain a marker)
   ;; and nobody has won, then a stalemate has been reached.
   (notany #'numberp *board*))
-
-;;; Mask the implementation of the board
-;;; in terms of referencing a cell.
-(defun cell-ref (cell)
-  ;; (cell-ref cell) now calls an array reference
-  ;; to the cell number minus one, to compensate
-  ;; for the fact that the array index starts at 0.
-  (aref *board* (1- cell)))
-
-;;; Mask the implementation of the board
-;;; in terms of setting a cell value.
-(defun set-cell (cell)
-  ;; (set-cell cell) now calls an array reference
-  ;; to the cell number minus one, to compensate 
-  ;; for the fact that the array index starts at 0,
-  ;; and sets that reference to the marker.
-  (setf (aref *board* (1- cell)) *marker*))
 
 
 ;;; First player is X, so initialize the marker to X
