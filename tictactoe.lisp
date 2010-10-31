@@ -5,10 +5,6 @@
 ;;;;
 ;;;; Simple two player ASCII Tic Tac Toe Game
 
-;;; First player is X, so initialize the marker to X
-(setf *marker* :X)
-(setf *player* "Player 1")
-
 ;;; Create the board in memory
 (defun create-board ()
   ;; Board was initially a 3x3 2D Array, for realism.
@@ -198,6 +194,11 @@
   ;; for the fact that the array index starts at 0,
   ;; and sets that reference to the marker.
   (setf (aref *board* (1- cell)) *marker*))
+
+
+;;; First player is X, so initialize the marker to X
+(setf *marker* :X)
+(setf *player* "Player 1")
 
 ;;; Begin the game.
 (welcome-player)
