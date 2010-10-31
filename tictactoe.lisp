@@ -14,8 +14,8 @@
   ;; Board was initially a 3x3 2D Array, for realism.
   ;; Changed it to a 9 element Vector for simplification of referencing.
   (setf *board* (make-array 9
-			    :initial-contents
-			    '(1 2 3 4 5 6 7 8 9))))
+		  :initial-contents
+		  '(1 2 3 4 5 6 7 8 9))))
 
 ;;; Greet the player and display the board.
 (defun welcome-player ()
