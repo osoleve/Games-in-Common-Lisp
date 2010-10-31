@@ -1,0 +1,14 @@
+	Games in Common Lisp
+
+	Andrew Levenson, circa 2010
+
+       	This is simply a small collection of basic games, implemented in Steel Banks Common Lisp (SBCL). Its only purpose is to serve as a learning exercise for me, and reading material for anyone starting out in Lisp.
+
+       	All games are free to copy, distribute, mangle, destroy, ogle, and basically do whatever you want to. They come with the "It Works On My Machine" Guarantee, as they are guaranteed to work. On my machine. Unless I break them.
+
+	To run any of the games, you must have some form of Common Lisp (I don't know if they work with Emacs Lisp), SBCL recommended because that's what they were written for. To start a game (assuming you are using SBCL on a *nix system), open up a command prompt and enter:
+
+	sbcl --load game.lisp
+
+
+	Any questions, comments, and concerns may be emailed to Andrew(dot)Levenson(at)Gmail(dot)com. Happy hacking!
