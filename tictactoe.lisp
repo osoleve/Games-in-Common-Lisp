@@ -6,39 +6,36 @@
 ;;;;
 ;;;; Simple two player ASCII Tic Tac Toe Game
 
-;;; Create the board in memory
 (defun create-board ()
-  ;; Board was initially a 3x3 2D Array, for realism.
-  ;; Changed it to a 9 element Vector for simplification of referencing.
+  "Creates an array with the contents 1-9."
   (setf *board* (make-array 9
-		  :initial-contents
-		  '(1 2 3 4 5 6 7 8 9))))
+			    :initial-contents
+			    '(1 2 3 4 5 6 7 8 9))))
 
-;;; Mask the implementation of the board
-;;; in terms of referencing a cell.
-(defun cell-ref (cell)
-  ;; (cell-ref cell) now calls an array reference
-  ;; to the cell number minus one, to compensate
-  ;; for the fact that the array index starts at 0.
-  (aref *board* (1- cell)))
+(defun x-coordinate (choice)
+  "Computes the given cell's x coordinate."
+  (mod (1- choice) 3))
 
-;;; Mask the implementation of the board
-;;; in terms of setting a cell value.
-(defun set-cell (cell)
-  ;; (set-cell cell) now calls an array reference
-  ;; to the cell number minus one, to compensate 
-  ;; for the fact that the array index starts at 0,
-  ;; and sets that reference to the marker.
-  (setf (aref *board* (1- cell)) *marker*))
+(defun y-coordinate (choice)
+  "Computes the given cell's y coordinate."
+  (floor (/ (1- choice) 3)))
 
-;;; Welcome the player
+(defun ref-cell (x y)
+  "Returns the value in cell (x, y)."
+  (aref *board* (+ (* y 3) x)))
+
+(defun set-cell (x y)
+  "Sets the value in cell (x, y)."
+  (setf (aref *board* (+ (* y 3) x)) *marker*))
+
 (defun welcome-player ()
+  "Welcomes the player and begins a game."
   (format t "Welcome to TicTacToe!~%~%")
   (create-board)
   (play nil))
 	
-;;; Switch the active player.
 (defun switch-player ()
+  "Switches the active player."
   (if (equal *marker* :X)
         (setf *marker* :O)
 	(setf *marker* :X))
@@ -46,41 +43,41 @@
 	(setf *player* "Player 2")
 	(setf *player* "Player 1")))
 
-;;; Draw the board
-(defun draw-board ()
-  ;; (cell-ref #) will be either 
-  ;; 1. The number representing the space (before it is chosen), or
-  ;; 2. A marker (:X or :O) once the space has been chosen.
+(defun draw-board (&optional numbers-p)
+  "Displays the board. If numbers-p is non-nil, 
+displays numbers in vacant spaces." 
   (format t "     |     |     ~%")
-  (format t "   ~a |   ~a |   ~a  ~%" (cell-ref 1) (cell-ref 2) (cell-ref 3))
-  (format t "     |     |     ~%")
-  (format t "_________________~%")
-  (format t "     |     |     ~%")
-  (format t "   ~a |   ~a |   ~a  ~%" (cell-ref 4) (cell-ref 5) (cell-ref 6))
+  (if numbers-p 
+      (format t "   ~a |   ~a |   ~a  ~%" 
+	      (ref-cell 0 0) (ref-cell 1 0) (ref-cell 2 0))
+      (format t "     |     |     ~%"))
   (format t "     |     |     ~%")
   (format t "_________________~%")
   (format t "     |     |     ~%")
-  (format t "   ~a |   ~a |   ~a  ~%" (cell-ref 7) (cell-ref 8) (cell-ref 9))
+  (if numbers-p 
+      (format t "   ~a |   ~a |   ~a  ~%" 
+	      (ref-cell 0 1) (ref-cell 1 1) (ref-cell 2 1))
+      (format t "     |     |     ~%"))
+  (format t "     |     |     ~%")
+  (format t "_________________~%")
+  (format t "     |     |     ~%")
+  (if numbers-p 
+      (format t "   ~a |   ~a |   ~a  ~%" 
+	      (ref-cell 0 2) (ref-cell 1 2) (ref-cell 2 2))
+      (format t "     |     |     ~%"))
   (format t "     |     |     ~%~%"))
 
-;;; Play a move
 (defun play (&optional switch-p)
-  ;; If the switch predicate is set to true, switch players.
+  "If switch-p is true, switches the active player. 
+Plays a move; Checks if the move is a win or a stalemate.
+If neither is true, recursively calls itself. If either is true,
+prompts for a new game."
   (when switch-p (switch-player))
-  ;; Go through the motions for selecting a square 
-  ;; and checking for correctness.
   (check-choice (read-choice))
-  ;; If nobody has won and the board is not filled,
-  ;; then recursively call this function with the switch predicate
-  ;; so that the next player may go.
   (when (and 
 	  (not (check-for-win-p)) 
-	  (not (stalemate)))
+	  (not (stalemate-p)))
     (play t))
-  ;; If someone has won
-  ;; 1. Alert the players as to which player won
-  ;; 2. Ask if they want to play again.
-  ;;    If yes, play again. If no, quit.
   (when (check-for-win-p)
     (progn
       (format t "~a has won! " *player*)
@@ -88,82 +85,52 @@
       (if (y-or-n-p "Play again? ")
 	  (play-again)
 	  (quit))))
-  ;; If there is a stalemate
-  ;; Ask if the players wish to play again.
-  ;; If yes, play again. If no, quit.
-  (when (stalemate)
+  (when (stalemate-p)
     (if (y-or-n-p "~%~%Stalemate! Play again? ")
 	(play-again)
 	(quit))))
 
-;;; Play the game again
-;;; Is only called after a win or a stalemate
 (defun play-again ()
-  ;; Reset the board to all numbers
+  "Recreates the board, switches the active player, and starts a new game."
   (create-board)
-  ;; Switch players, so whoever ended 
-  ;; the last game goes second this game.
   (switch-player)
   (format t "This game will be started by ~a.~%~%" *player*)
   (play))
 
-;;; Allow the player to choose a square
-;;; Or, if they wish, display the board with
-;;; the numbers on it.
 (defun read-choice ()
-  ;; Show their options
-  (draw-board)
+  "Displays the board and prompts the player to enter a choice, or to
+see their options, then reads in and returns their choice."
+  (draw-board t)
   (format t "~a, select a number to choose a square.~%" *player*) 
   (force-output nil)
-  ;; Read from STDIN, 
-  ;; parsing an integer out, if there is any.
   (parse-integer (read-line *query-io*) :junk-allowed t))
-
-;;; Check to make sure that the cell chosen
-;;; actually exists on the board.
+ 
 (defun check-choice (choice)
-  (if
-   ;; All of the following must be true
-   (and
-    ;; Must be a number (der)
-    (numberp choice)
-    ;; Must lie between 1 and 9, inclusive
-    (> choice 0)
-    (< choice 10))
-   ;; If it's a valid cell, pass it to (select)
-   (select choice)
-   ;; Otherwise, warn the player they made an invalid
-   ;; selection, and repeat the process.
-   (progn
-     (format t "~%Invalid choice.~%")
-     (check-choice (read-choice)))))
+  "Checks to ensure the user input is valid,
+i.e. an integer value between 1 and 9, inclusive."
+  (if (and (numberp choice)
+           (<= 1 choice 9))
+      (select choice)
+    (progn (format t "~%Invalid choice.~%")
+           (check-choice (read-choice)))))
 
-;;; Select their cell, if it hasn't
-;;; already been selected.
 (defun select (choice)
-  ;; If the cell contains a number 
-  ;; (i.e. it has not yet been selected)
-  (if (numberp (cell-ref choice))
-      ;; Set the cell to their marker
-      (set-cell choice)
-      ;; Otherwise, warn them of an invalid selection
+  "Checks if the cell has not been selected (contains a number).
+If so, places the players marker in the cell.
+Otherwise, prompts the player to try again."
+  (if (numberp (ref-cell (x-coordinate choice) (y-coordinate choice)))
+      (set-cell  (x-coordinate choice) (y-coordinate choice))
       (invalid-selection)))
 
-;;; Warn the player if they choose a spot that is taken.
 (defun invalid-selection ()
+  "Warns the player if they choose a spot that has been taken,
+and repeats the entry process."
   (format t "That spot is taken. Please choose another spot.~%~%")
   (force-output nil)
   (check-choice (read-choice)))
 
-;;; Check to see if there are any lines made
-;;; (i.e. someone won)
-;;;
-;;; This function is called every time someone
-;;; selects a cell, to make displaying the winner
-;;; easier.
 (defun check-for-win-p ()
-  ;; If any of these sets of 3 cells form a line,
-  ;; that means that the active player won the game.
+  "Checks to see if any lines have been made. Returns t or nil."
   (or (is-line-p 1 2 3)
       (is-line-p 1 4 7)
       (is-line-p 1 5 9)
@@ -173,33 +140,24 @@
       (is-line-p 4 5 6)
       (is-line-p 7 8 9)))
 
-;;; If the three cell numbers passed to
-;;; (is-line-p) contain identical values,
-;;; then a line has been made.
 (defun is-line-p (a b c)
+  "Tests to see if the three cells fed to it as arguments
+contain identical values. Returns t or nil."
   (and
    (equal
-    (cell-ref a)
-    (cell-ref b))
+    (ref-cell (x-coordinate a) (y-coordinate a))
+    (ref-cell (x-coordinate b) (y-coordinate b)))
    (equal
-    (cell-ref a)
-    (cell-ref c))))
+    (ref-cell (x-coordinate a) (y-coordinate a))
+    (ref-cell (x-coordinate c) (y-coordinate c)))))
 
-;;; Define what it means for the board to be filled.
-;;; 
-;;; This function is always called AFTER (check-for-win-p).
-;;; This ensures that if the last move is a winning move,
-;;; a stalemate is not reported.
-(defun stalemate ()
-  ;; If none of the spaces contain numbers
-  ;; (i.e. all spaces contain a marker)
-  ;; and nobody has won, then a stalemate has been reached.
+(defun stalemate-p ()
+  "Checks to see if there is a stalemate,
+i.e. none of the board's cells contain a number.
+Returns t or nil."
   (notany #'numberp *board*))
 
-
-;;; First player is X, so initialize the marker to X
 (setf *marker* :X)
 (setf *player* "Player 1")
 
-;;; Begin the game.
 (welcome-player)
