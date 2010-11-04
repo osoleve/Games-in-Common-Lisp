@@ -1,4 +1,3 @@
-
 ;;;; tictactoe.lisp
 ;;;; 
 ;;;; Andrew Levenson
@@ -12,13 +11,13 @@
 			    :initial-contents
 			    '(1 2 3 4 5 6 7 8 9))))
 
-(defun x-coordinate (choice)
+(defun x-coordinate (cell)
   "Computes the given cell's x coordinate."
-  (mod (1- choice) 3))
+  (mod (1- cell) 3))
 
-(defun y-coordinate (choice)
+(defun y-coordinate (cell)
   "Computes the given cell's y coordinate."
-  (floor (/ (1- choice) 3)))
+  (floor (/ (1- cell) 3)))
 
 (defun ref-cell (x y)
   "Returns the value in cell (x, y)."
@@ -114,12 +113,12 @@ i.e. an integer value between 1 and 9, inclusive."
     (progn (format t "~%Invalid choice.~%")
            (check-choice (read-choice)))))
 
-(defun select (choice)
+(defun select (cell)
   "Checks if the cell has not been selected (contains a number).
 If so, places the players marker in the cell.
 Otherwise, prompts the player to try again."
-  (if (numberp (ref-cell (x-coordinate choice) (y-coordinate choice)))
-      (set-cell  (x-coordinate choice) (y-coordinate choice))
+  (if (numberp (ref-cell (x-coordinate cell) (y-coordinate cell)))
+      (set-cell  (x-coordinate cell) (y-coordinate cell))
       (invalid-selection)))
 
 (defun invalid-selection ()
@@ -130,26 +129,27 @@ and repeats the entry process."
   (check-choice (read-choice)))
 
 (defun check-for-win-p ()
-  "Checks to see if any lines have been made. Returns t or nil."
-  (or (is-line-p 1 2 3)
-      (is-line-p 1 4 7)
-      (is-line-p 1 5 9)
-      (is-line-p 2 5 8)
-      (is-line-p 3 6 9)
-      (is-line-p 3 5 7)
-      (is-line-p 4 5 6)
-      (is-line-p 7 8 9)))
+  "Checks to see if the last move played was a winner.
+Compares all possible winning combinations on the board.."
+  (or
+   (dolist (x '((1 2 3)
+		(1 4 7)
+		(1 5 9)
+		(2 5 8)
+		(3 6 9)
+		(3 5 7)
+		(4 5 6)
+		(7 8 9)))
+     (is-line-p x))))
+	    
 
-(defun is-line-p (a b c)
+(defun is-line-p (3-cells)
   "Tests to see if the three cells fed to it as arguments
 contain identical values. Returns t or nil."
-  (and
    (equal
-    (ref-cell (x-coordinate a) (y-coordinate a))
-    (ref-cell (x-coordinate b) (y-coordinate b)))
-   (equal
-    (ref-cell (x-coordinate a) (y-coordinate a))
-    (ref-cell (x-coordinate c) (y-coordinate c)))))
+    (ref-cell (x-coordinate (nth 0 3-cells)) (y-coordinate (nth 0 3-cells)))
+    (ref-cell (x-coordinate (nth 1 3-cells)) (y-coordinate (nth 1 3-cells)))
+    (ref-cell (x-coordinate (nth 2 3-cells)) (y-coordinate (nth 2 3-cells)))))
 
 (defun stalemate-p ()
   "Checks to see if there is a stalemate,
